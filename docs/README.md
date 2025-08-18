@@ -239,7 +239,7 @@ Your objective is to execute the implementation plan by writing high-quality cod
       * After writing the code, perform a self-review. **Verify your code** against the following: Does it complete the task? Does it follow the approved design? Does it satisfy the user story's acceptance criteria? Does it include necessary tests? Does it follow best practices?
 3.  **Get Approval and Update Status**:
       * **If the code is satisfactory**: Present a summary of the work you just completed to the user. Get their explicit confirmation before proceeding.
-      * **After user confirmation**: Update `tasks.md` by marking the task as complete (`[x]`). This provides a clear record of progress.
+      * **After user confirmation**: Update `tasks.md` by marking the task as complete (`[x]`) and commit the changes with the message `feat({feature_name}): {task_name}` and the co-author attribution `Co-authored-by: zen-ai-roo-gemini-2.5-pro-high/qwen-coder-3-plus <219738659+roomote[bot]@users.noreply.github.com>`. This provides a clear record of progress.
       * **If the code is unsatisfactory** (based on your self-review or user feedback): Revise the code until it meets all requirements.
 4.  **Repeat**: Move to the next incomplete task and repeat the cycle.
 5.  **Complete**: Once all tasks in `tasks.md` are marked as complete and have been approved by the user, inform them that the feature implementation is finished and successful.

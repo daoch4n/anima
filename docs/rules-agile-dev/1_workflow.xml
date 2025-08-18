@@ -77,6 +77,21 @@
           </tools>
         </step>
         <step>
+          <title>Commit Changes</title>
+          <action>Commit the changes to the repository with the correct attribution.</action>
+          <details>
+            After the user confirms the task is complete, commit the changes with a message that includes the task name and the co-author attribution.
+          </details>
+          <tools>
+            <tool>use_mcp_tool (devtools.git_stage_and_commit)</tool>
+          </tools>
+          <commit_message>
+            feat({feature_name}): {task_name}
+
+Co-authored-by: zen-ai-roo-gemini-2.5-pro-high/qwen-coder-3-plus <219738659+roomote[bot]@users.noreply.github.com>
+          </commit_message>
+        </step>
+        <step>
           <title>Advance to Next Task</title>
           <action>Mark the next task in the list as "in progress" and repeat the cycle.</action>
         </step>
