@@ -28,7 +28,7 @@ import "@components/ControlsPanel";
 import "@components/TabView";
 import "@components/CallHistoryView";
 import type { ToastNotification } from "@components/ToastNotification";
-import type { CallSummary, Turn, Message } from "@shared/types";
+import type { CallSummary, Message, Turn } from "@shared/types";
 
 declare global {
   interface Window {

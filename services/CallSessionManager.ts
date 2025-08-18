@@ -1,14 +1,11 @@
+import type { PersonaManager } from "@features/persona/PersonaManager";
 import {
-  BaseSessionManager,
-  type SessionConfig,
-} from "./BaseSessionManager";
-import {
-  GoogleGenAI,
+  type GoogleGenAI,
   type LiveServerMessage,
   Modality,
   type Session,
 } from "@google/genai";
-import type { PersonaManager } from "@features/persona/PersonaManager";
+import { BaseSessionManager, type SessionConfig } from "./BaseSessionManager";
 import { energyBarService } from "./EnergyBarService";
 
 /**
@@ -21,7 +18,10 @@ export class CallSessionManager extends BaseSessionManager {
 
   constructor(
     private client: GoogleGenAI,
-    private updateCallTranscript: (text: string, speaker: "user" | "model") => void,
+    private updateCallTranscript: (
+      text: string,
+      speaker: "user" | "model",
+    ) => void,
     private personaManager: PersonaManager,
   ) {
     super("CallSessionManager");
@@ -72,7 +72,7 @@ export class CallSessionManager extends BaseSessionManager {
 
     if (this.session) {
       this.sessionState = {
-        sessionId: "sts-session-" + Date.now(), // Sessions don't have IDs in the new API, so we create one
+        sessionId: `sts-session-${Date.now()}`, // Sessions don't have IDs in the new API, so we create one
         resumptionToken: null,
         currentModel: config.model,
         isActive: true,
@@ -188,6 +188,12 @@ export class CallSessionManager extends BaseSessionManager {
 
         // Handle transcriptions
         if (message.serverContent?.outputTranscription?.text) {
+          // Add to internal transcript
+          this.callTranscript.push({
+            speaker: "model",
+            text: message.serverContent.outputTranscription.text,
+          });
+
           this.updateCallTranscript(
             message.serverContent.outputTranscription.text,
             "model",
@@ -195,6 +201,12 @@ export class CallSessionManager extends BaseSessionManager {
         }
 
         if (message.serverContent?.inputTranscription?.text) {
+          // Add to internal transcript
+          this.callTranscript.push({
+            speaker: "user",
+            text: message.serverContent.inputTranscription.text,
+          });
+
           this.updateCallTranscript(
             message.serverContent.inputTranscription.text,
             "user",
@@ -236,5 +248,12 @@ export class CallSessionManager extends BaseSessionManager {
    */
   getSession(): Session | null {
     return this.session;
+  }
+
+  /**
+   * Get the current call transcript
+   */
+  getCallTranscript(): Array<{ speaker: string; text: string }> {
+    return [...this.callTranscript];
   }
 }

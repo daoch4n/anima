@@ -1,14 +1,11 @@
+import type { PersonaManager } from "@features/persona/PersonaManager";
 import {
-  BaseSessionManager,
-  type SessionConfig,
-} from "./BaseSessionManager";
-import {
-  GoogleGenAI,
+  type GoogleGenAI,
   type LiveServerMessage,
   Modality,
   type Session,
 } from "@google/genai";
-import type { PersonaManager } from "@features/persona/PersonaManager";
+import { BaseSessionManager, type SessionConfig } from "./BaseSessionManager";
 import { energyBarService } from "./EnergyBarService";
 
 /**
@@ -17,7 +14,8 @@ import { energyBarService } from "./EnergyBarService";
  */
 export class TextSessionManager extends BaseSessionManager {
   private session: Session | null = null;
-  private messages: Array<{ role: string; parts: Array<{ text: string }> }> = [];
+  private messages: Array<{ role: string; parts: Array<{ text: string }> }> =
+    [];
 
   constructor(
     private client: GoogleGenAI,
@@ -87,7 +85,7 @@ export class TextSessionManager extends BaseSessionManager {
 
     if (this.session) {
       this.sessionState = {
-        sessionId: "text-session-" + Date.now(), // Sessions don't have IDs in the new API, so we create one
+        sessionId: `text-session-${Date.now()}`, // Sessions don't have IDs in the new API, so we create one
         resumptionToken: null,
         currentModel: config.model,
         isActive: true,
@@ -193,7 +191,7 @@ export class TextSessionManager extends BaseSessionManager {
         if (errorMessage && errorMessage.message?.includes("rate limit")) {
           this.handleRateLimitError(new Error(errorMessage.message));
         }
-        
+
         // Handle text response for transcript
         const modelTurn = message.serverContent?.modelTurn;
         if (modelTurn) {
@@ -217,7 +215,7 @@ export class TextSessionManager extends BaseSessionManager {
             role: "model",
             parts: [{ text: responseText }],
           });
-          
+
           // Resolve the promise
           (this as any)._currentResolver(responseText);
           delete (this as any)._currentResolver;
