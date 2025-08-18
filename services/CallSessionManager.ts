@@ -49,7 +49,7 @@ export class CallSessionManager extends BaseSessionManager {
 
     try {
       // Send the audio chunk to the session
-      this.session.sendRealtimeInput({ media: new Blob([chunk]) as any });
+      this.session.sendRealtimeInput({ media: chunk as any });
     } catch (error) {
       this.logger.error("Failed to send audio chunk", error);
       throw error;
