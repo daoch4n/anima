@@ -116,24 +116,6 @@ graph TD
 #### 8. UI Components (`<chat-view>`, `<call-transcript>`, etc.)
 *   **Responsibility:** Purely presentational components that receive data via properties and emit events for user actions. They do not contain business logic.
 
-#### 4. `EnergyBarService` (Service Class)
-*   **Responsibility:** Manages the energy levels for both TTS and STS modes. Determines the correct Gemini model to use based on the current energy level.
-*   **State Properties:**
-    *   `ttsLevel: number` (2, 1, 0)
-    *   `stsLevel: number` (3, 2, 1, 0)
-*   **Interface:**
-    *   `downgrade(mode: 'tts' | 'sts')`
-    *   `reset(mode: 'tts' | 'sts')`
-    *   `getCurrentModel(mode: 'tts' | 'sts'): string`
-    *   `getPersonaPrompt(mode: 'tts' | 'sts'): string`
-
-#### 5. `SummarizationService` (Service Class)
-*   **Responsibility:** Generates a summary from a call transcript using a lightweight Gemini model.
-*   **Interface:**
-    *   `summarize(transcript: Message[]): Promise<string>`
-
-#### 6. UI Components (`<chat-view>`, `<call-transcript>`, etc.)
-*   **Responsibility:** Purely presentational components that receive data via properties and emit events for user actions. They do not contain business logic.
 
 ### Data Models
 
