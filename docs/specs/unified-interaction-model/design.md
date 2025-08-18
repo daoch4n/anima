@@ -55,7 +55,7 @@ graph TD
 1.  The `gdm-live-audio` component initializes the `InteractionManager`, `EnergyBarService`, and `SummarizationService`.
 2.  User interaction events from the UI (e.g., `send-message`, `start-call`) are dispatched to the `gdm-live-audio` component, which routes them to the `InteractionManager`.
 3.  The `InteractionManager` manages the lifecycles of the `TextSessionManager` and `CallSessionManager`, instructing them to start, send data to, or end a session with the Google GenAI API.
-4.  The session managers are responsible for all direct communication with the Gemini API, including handling session resumption tokens.
+4.  The session managers are responsible for all direct communication with the Google GenAI API, including handling session resumption tokens.
 5.  If a rate limit is detected, the session manager notifies the `InteractionManager`, which then instructs the `EnergyBarService` to downgrade the energy level for that mode.
 6.  The `EnergyBarService` updates the energy state and emits an `energy-level-changed` event. The `gdm-live-audio` component listens for this event and updates its state, which is then reflected in the UI.
 7.  At the end of a call, the `InteractionManager` passes the transcript to the `SummarizationService` to generate a summary. The summary is then stored in the application's state and displayed in the call history.
