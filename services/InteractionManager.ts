@@ -216,13 +216,11 @@ export class InteractionManager {
    */
   private clearTextSession(): void {
     this.logger.info("Clearing text session");
-
     if (this.textSessionManager) {
-      this.textSessionManager.clearMessages();
+      this.textSessionManager.endSession();
       // Dispatch event for UI to clear chat
       document.dispatchEvent(new CustomEvent("chat-cleared"));
     }
-
     // Also reset TTS energy
     this.energyBarService.resetEnergyLevel("manual", "tts");
   }

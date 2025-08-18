@@ -58,7 +58,7 @@ export abstract class BaseSessionManager {
   protected sessionState: SessionState | null = null;
   protected eventListeners: Map<string, Set<(event: SessionEvent) => void>> =
     new Map();
-  protected reconnectTimer: number | null = null;
+  protected reconnectTimer: ReturnType<typeof setTimeout> | null = null;
 
   // Configuration
   protected readonly MAX_RECONNECT_ATTEMPTS = 3;
@@ -268,7 +268,7 @@ export abstract class BaseSessionManager {
 
     this.reconnectTimer = setTimeout(() => {
       this.attemptReconnection();
-    }, reconnectIn) as unknown as number;
+    }, reconnectIn);
   }
 
   /**
