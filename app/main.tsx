@@ -28,7 +28,7 @@ import "@components/ControlsPanel";
 import "@components/TabView";
 import "@components/CallHistoryView";
 import type { ToastNotification } from "@components/ToastNotification";
-import type { CallSummary, Turn } from "@shared/types";
+import type { CallSummary, Turn, Message } from "@shared/types";
 
 declare global {
   interface Window {
@@ -605,8 +605,8 @@ export class GdmLiveAudio extends LitElement {
 
   // Dual-context state management
   @state() activeMode: ActiveMode = null;
-  @state() textTranscript: Turn[] = [];
-  @state() callTranscript: Turn[] = [];
+  @state() textTranscript: Message[] = [];
+  @state() callTranscript: Message[] = [];
   @state() textSession: Session | null = null;
   @state() callSession: Session | null = null;
   @state() activeTab: "chat" | "call-history" = "chat";
@@ -887,24 +887,29 @@ export class GdmLiveAudio extends LitElement {
 
   private updateTextTranscript(text: string) {
     const lastTurn = this.textTranscript[this.textTranscript.length - 1];
-    if (lastTurn?.speaker === "model") {
+    if (lastTurn?.sender === "model") {
       lastTurn.text += text;
       this.requestUpdate("textTranscript");
     } else {
       this.textTranscript = [
         ...this.textTranscript,
-        { text, speaker: "model" },
+        {
+          text,
+          sender: "model",
+          id: Date.now().toString(),
+          timestamp: new Date(),
+        },
       ];
     }
   }
 
-  private updateCallTranscript(text: string, speaker: "user" | "model") {
-    logger.debug(`Received ${speaker} text:`, text);
+  private updateCallTranscript(text: string, sender: "user" | "model") {
+    logger.debug(`Received ${sender} text:`, text);
 
     // For audio transcription, we get incremental chunks that should be appended
     const lastTurn = this.callTranscript[this.callTranscript.length - 1];
 
-    if (lastTurn?.speaker === speaker) {
+    if (lastTurn?.sender === sender) {
       // Append to the existing turn by creating a new array
       // This ensures Lit detects the change
       const updatedTranscript = [...this.callTranscript];
@@ -915,30 +920,42 @@ export class GdmLiveAudio extends LitElement {
       this.callTranscript = updatedTranscript;
     } else {
       // Create a new turn for this author
-      this.callTranscript = [...this.callTranscript, { text, speaker }];
+      this.callTranscript = [
+        ...this.callTranscript,
+        {
+          text,
+          sender,
+          id: Date.now().toString(),
+          timestamp: new Date(),
+        },
+      ];
     }
   }
 
   private _appendCallNotice(text: string) {
     // Append a system-style notice to the call transcript to avoid silent failures
-    const notice = {
+    const notice: Message & { isSystemMessage?: boolean } = {
       text,
-      speaker: "model" as const,
+      sender: "model" as const,
+      id: Date.now().toString(),
       timestamp: new Date(),
       isSystemMessage: true,
     };
     this.callTranscript = [...this.callTranscript, notice];
   }
 
-  private _appendTextMessage(text: string, speaker: "user" | "model") {
+  private _appendTextMessage(text: string, sender: "user" | "model") {
     // Append a message directly to the text transcript
     logger.debug("Appending text message", {
       text,
-      speaker,
+      sender,
       currentLength: this.textTranscript.length,
     });
 
-    this.textTranscript = [...this.textTranscript, { text, speaker }];
+    this.textTranscript = [
+      ...this.textTranscript,
+      { text, sender, id: Date.now().toString(), timestamp: new Date() },
+    ];
 
     logger.debug("Text message appended", {
       newLength: this.textTranscript.length,
@@ -1384,7 +1401,7 @@ export class GdmLiveAudio extends LitElement {
     this.activeTab = e.detail.tab;
   }
 
-  private _handleSummarizationComplete(summary: string, transcript: Turn[]) {
+  private _handleSummarizationComplete(summary: string, transcript: Message[]) {
     const newSummary: CallSummary = {
       id: Date.now().toString(),
       timestamp: Date.now(),
@@ -1417,7 +1434,12 @@ export class GdmLiveAudio extends LitElement {
     // Add the summary prompt as the first "user" message in the new conversation
     this.textTranscript = [
       ...this.textTranscript,
-      { text: message, speaker: "user" },
+      {
+        text: message,
+        sender: "user",
+        id: Date.now().toString(),
+        timestamp: new Date(),
+      },
     ];
 
     // A new session must be initialized. Show status while this happens.
@@ -1492,7 +1514,12 @@ export class GdmLiveAudio extends LitElement {
     // Add message to text transcript
     this.textTranscript = [
       ...this.textTranscript,
-      { text: message, speaker: "user" },
+      {
+        text: message,
+        sender: "user",
+        id: Date.now().toString(),
+        timestamp: new Date(),
+      },
     ];
 
     // Ensure we have an active text session

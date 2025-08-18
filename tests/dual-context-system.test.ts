@@ -155,13 +155,23 @@ describe("Dual-Context System", () => {
 
     it("should maintain separate transcript arrays for text and call modes", async () => {
       // Add message to text transcript
-      const textMessage = { text: "Hello text", speaker: "user" as const };
+      const textMessage = {
+        text: "Hello text",
+        sender: "user" as const,
+        id: "1",
+        timestamp: new Date(),
+      };
       element.textTranscript = [textMessage];
       await element.updateComplete;
 
       // Switch to calling mode and add call transcript
       element.activeMode = "calling";
-      const callMessage = { text: "Hello call", speaker: "user" as const };
+      const callMessage = {
+        text: "Hello call",
+        sender: "user" as const,
+        id: "2",
+        timestamp: new Date(),
+      };
       element.callTranscript = [callMessage];
       await element.updateComplete;
 
@@ -186,12 +196,26 @@ describe("Dual-Context System", () => {
 
     it("should preserve context when switching between modes", async () => {
       // Add content to text mode
-      element.textTranscript = [{ text: "Text message 1", speaker: "user" }];
+      element.textTranscript = [
+        {
+          text: "Text message 1",
+          sender: "user",
+          id: "1",
+          timestamp: new Date(),
+        },
+      ];
       await element.updateComplete;
 
       // Switch to calling mode
       element.activeMode = "calling";
-      element.callTranscript = [{ text: "Call message 1", speaker: "user" }];
+      element.callTranscript = [
+        {
+          text: "Call message 1",
+          sender: "user",
+          id: "2",
+          timestamp: new Date(),
+        },
+      ];
       await element.updateComplete;
 
       // Switch back to texting mode
@@ -259,8 +283,22 @@ describe("Dual-Context System", () => {
 
     it("should reset only text context when _resetTextContext is called", () => {
       // Add content to both transcripts
-      element.textTranscript = [{ text: "Text message", speaker: "user" }];
-      element.callTranscript = [{ text: "Call message", speaker: "user" }];
+      element.textTranscript = [
+        {
+          text: "Text message",
+          sender: "user",
+          id: "1",
+          timestamp: new Date(),
+        },
+      ];
+      element.callTranscript = [
+        {
+          text: "Call message",
+          sender: "user",
+          id: "2",
+          timestamp: new Date(),
+        },
+      ];
 
       // Call the text reset method directly
       (element as any)._resetTextContext();
@@ -272,8 +310,22 @@ describe("Dual-Context System", () => {
 
     it("should reset only call context when _resetCallContext is called", () => {
       // Add content to both transcripts
-      element.textTranscript = [{ text: "Text message", speaker: "user" }];
-      element.callTranscript = [{ text: "Call message", speaker: "user" }];
+      element.textTranscript = [
+        {
+          text: "Text message",
+          sender: "user",
+          id: "1",
+          timestamp: new Date(),
+        },
+      ];
+      element.callTranscript = [
+        {
+          text: "Call message",
+          sender: "user",
+          id: "2",
+          timestamp: new Date(),
+        },
+      ];
 
       // Call the call reset method directly
       (element as any)._resetCallContext();
