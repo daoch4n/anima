@@ -62,8 +62,8 @@ Scenario: Handling rate limits during a call
 #### 2.1.3. User Story: Context and Transcript Management
 - **Priority**: High
 - **As a** user,
-- **I want** my text conversations to be preserved independently from voice calls,
-- **so that** I can switch between texting and fresh voice calls without losing my chat history.
+- **I want** my text conversations to be preserved during my session, independently from voice calls,
+- **so that** I can switch between texting and fresh voice calls without losing my current chat history.
 
 ##### Acceptance Criteria
 ```gherkin
@@ -83,6 +83,11 @@ Scenario: Starting a new call
 Scenario: Returning to text chat
   When I return to the text messaging view after a call
   Then the previous text conversation history is restored.
+
+Scenario: Chat history is not persisted across page reloads
+  Given I have an active text conversation
+  When I reload the application
+  Then the chat window is empty.
 ```
 
 #### 2.1.4. User Story: Dynamic UI and Layout
@@ -195,14 +200,14 @@ Scenario: Start a new call after exhaustion
 #### 2.2.4. User Story: Reset TTS Energy on New Chat
 - **Priority**: High
 - **As a** system,
-- **I want** to reset the TTS energy level to the highest tier at the start of every new chat session,
-- **so that** each chat starts with the best possible model.
+- **I want** to reset the TTS energy level to the highest tier when I manually start a new chat,
+- **so that** I can begin a fresh conversation with the best possible model.
 
 ##### Acceptance Criteria
 ```gherkin
-Scenario: Start a new chat after exhaustion
+Scenario: Resetting chat after energy exhaustion
   Given the TTS energy level was 0 at the end of the last chat
-  When a new TTS session is connected
+  When I click the "Clear Chat" button to start a new conversation
   Then the TTS energy level is reset to 2.
 ```
 
