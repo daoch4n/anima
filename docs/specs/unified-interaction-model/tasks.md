@@ -4,7 +4,7 @@ This document breaks down the implementation of the Unified Interaction Model in
 
 ## 1. Foundational Services
 
-- [ ] 1.1. **Create `BaseSessionManager` Abstract Class**
+- [x] 1.1. **Create `BaseSessionManager` Abstract Class**
   - **File:** `services/BaseSessionManager.ts`
   - **Details:** Implement common session logic: in-memory resumption token storage, reconnection logic for network errors, and handling of `GoAway` messages.
   - **Ref:** Design section "Components and Interfaces", Requirement 2.3.1
