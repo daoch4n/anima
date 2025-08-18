@@ -73,6 +73,19 @@
           </tools>
         </step>
         <step>
+          <title>Run Type Check</title>
+          <action>Run the type checker to ensure code quality.</action>
+          <details>
+            Before seeking user approval, run the project's type check command (`npm run type`) to catch any potential TypeScript errors. This helps ensure the code is valid and reduces the chance of introducing bugs.
+          </details>
+          <command>
+            npm run type
+          </command>
+          <tools>
+            <tool>execute_command</tool>
+          </tools>
+        </step>
+        <step>
           <title>Approve or Request Revisions</title>
           <action>Based on the code review, either approve the task or send it back for revision.</action>
           <details>
