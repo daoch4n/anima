@@ -5,3 +5,4 @@ public/assets
 dist/
 .vscode/
 coverage/
+CONTEXT.md

@@ -40,25 +40,36 @@
         </step>
         <step>
           <title>Execute Task with Agentic Tool</title>
-          <action>Execute the current task using the `qwen` agentic tool.</action>
+          <action>Execute the current task using the `qwen` agentic tool with a context file.</action>
           <details>
-            Formulate a precise prompt for the `qwen` tool, including the specific task description from `tasks.md` and relevant context from `requirements.md` and `design.md`. The `qwen` tool will then be executed with the prompt to implement the required code changes. The `--yolo` flag is used to ensure the agent runs non-interactively.
+            To avoid shell syntax errors with complex prompts, first write a detailed prompt into a `CONTEXT.md` file. This file should include the specific task from `tasks.md` and all relevant context from `requirements.md` and `design.md`. Then, execute the `qwen` agent by piping the contents of `CONTEXT.md` to it. The `--yolo` flag is used to ensure the agent runs non-interactively.
           </details>
           <command>
-            qwen -p "Implement the task: [task from tasks.md]. Context: [context from requirements.md and design.md]" --yolo
+            qwen -p "$(cat CONTEXT.md)" --yolo
           </command>
           <tools>
+            <tool>write_to_file</tool>
             <tool>execute_command</tool>
           </tools>
         </step>
         <step>
-          <title>Code Review via Git Commit Diff</title>
-          <action>Review the code changes made by the coding agent by inspecting the latest git commit.</action>
+          <title>Verify File Changes</title>
+          <action>Check the Git working tree for any modifications made by the agent.</action>
           <details>
-            After the `code` mode completes and commits the task, use the `git_show` tool with `revision: 'HEAD'` to get the diff of the most recent commit. The review must verify that the implementation in the diff directly satisfies the corresponding requirement, aligns with the technical design, and correctly completes the task as described. This avoids loading full files into context.
+            To handle cases where the agent's process might terminate unexpectedly after completing its work, always check the git status to see if any files were modified. This ensures that successful work is not lost due to terminal or process glitches.
           </details>
           <tools>
-            <tool>use_mcp_tool (devtools.git_show)</tool>
+            <tool>use_mcp_tool (devtools.git_status)</tool>
+          </tools>
+        </step>
+        <step>
+          <title>Code Review via Git Diff</title>
+          <action>Review the code changes made by the coding agent by inspecting the working tree diff.</action>
+          <details>
+            After the agent has run, use the `git_diff_all` tool to get a diff of all changes in the working directory (staged and unstaged). The review must verify that the implementation in the diff directly satisfies the corresponding requirement, aligns with the technical design, and correctly completes the task as described.
+          </details>
+          <tools>
+            <tool>use_mcp_tool (devtools.git_diff_all)</tool>
           </tools>
         </step>
         <step>
