@@ -277,4 +277,11 @@ export class TextSessionManager extends BaseSessionManager {
   getSession(): Session | null {
     return this.session;
   }
+
+  /**
+   * End the current session
+   */
+  endSession(): void {
+    this.performSessionCleanup();
+  }
 }
