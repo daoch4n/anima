@@ -18,7 +18,7 @@ export interface CallHistoryItem {
 
 export interface CallSummary {
   id: string;
-  timestamp: number;
-  summary: string;
-  transcript: Message[];
+  summaryText: string;
+  timestamp: Date;
+  originalTranscript: Message[];
 }

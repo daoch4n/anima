@@ -580,8 +580,6 @@ class CallSessionManager extends BaseSessionManager {
   }
 }
 
-type ActiveMode = "text" | "call";
-
 const logger = createComponentLogger("GdmLiveAudio");
 
 @customElement("gdm-live-audio")
@@ -604,8 +602,9 @@ export class GdmLiveAudio extends LitElement {
   private currentApiKey: string = "";
 
   // Dual-context state management
-  @state() activeMode: ActiveMode = "text";
-  @state() textTranscript: Message[] = [];
+  @state() activeMode: "text" | "call" = "text";
+  @state() callState: "idle" | "connecting" | "active" | "ending" = "idle";
+  @state() textTranscript: Message[] = []; // Cleared on page reload (non-persistent)
   @state() callTranscript: Message[] = [];
   @state() textSession: Session | null = null;
   @state() callSession: Session | null = null;
@@ -641,7 +640,6 @@ export class GdmLiveAudio extends LitElement {
 
   // Scroll-to-bottom state for chat view
   @state() private showChatScrollToBottom = false;
-  @state() callState: "idle" | "connecting" | "active" | "ending" = "idle";
   @state() private chatNewMessageCount = 0;
   @state() private isChatActive = false;
 
@@ -734,6 +732,11 @@ export class GdmLiveAudio extends LitElement {
       this.personaManager.getActivePersona().id,
     );
     this.initClient();
+
+    // Ensure textTranscript is cleared on page reload (non-persistent)
+    // This is the default behavior as it's initialized as an empty array,
+    // but we're making it explicit to meet requirements
+    this.textTranscript = [];
 
     // Debug: Check initial TTS energy state
     logger.debug("Initial TTS energy state", {
@@ -1014,8 +1017,8 @@ export class GdmLiveAudio extends LitElement {
       // Resume path: try to restore previous call transcript from the last call summary if available
       try {
         const lastSummary = this.callHistory?.[0];
-        if (lastSummary?.transcript?.length) {
-          this.callTranscript = [...lastSummary.transcript];
+        if (lastSummary?.originalTranscript?.length) {
+          this.callTranscript = [...lastSummary.originalTranscript];
         }
       } catch {}
 
@@ -1404,16 +1407,16 @@ export class GdmLiveAudio extends LitElement {
   private _handleSummarizationComplete(summary: string, transcript: Message[]) {
     const newSummary: CallSummary = {
       id: Date.now().toString(),
-      timestamp: Date.now(),
-      summary,
-      transcript: transcript,
+      summaryText: summary,
+      timestamp: new Date(),
+      originalTranscript: transcript,
     };
     this.callHistory = [newSummary, ...this.callHistory];
   }
 
   private async _startTtsFromSummary(e: CustomEvent) {
     const summary = e.detail.summary as CallSummary;
-    const message = `Tell me more about our call regarding "${summary.summary}"`;
+    const message = `Tell me more about our call regarding "${summary.summaryText}"`;
 
     // Check API key presence before proceeding. If the key is missing, this
     // method will be re-invoked after the key is provided via the pendingAction
