@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<![CDATA[<?xml version="1.0" encoding="UTF-8"?>
 <workflow_instructions>
   <mode_overview>
     This mode governs the software development process, ensuring that every implementation step strictly adheres to the approved specifications. It orchestrates the execution of tasks, reviews the code produced, and maintains alignment with `requirements.md`, `design.md`, and `tasks.md`.
@@ -39,52 +39,60 @@
           </tools>
         </step>
         <step>
-          <title>Delegate Task to Specialist Agent (If Applicable)</title>
-          <action>If the task requires a specialist, delegate to the appropriate mode.</action>
+          <title>Execute Task with Agentic Tool</title>
+          <action>Execute the current task using the `qwen` agentic tool with a context file.</action>
           <details>
-            Analyze the task description from `tasks.md` for keywords indicating a need for a specialist agent.
-            - If keywords like "Google GenAI", "Gemini", "summarization", or "generative AI" are present, delegate the task to the `google-genai-developer` mode.
-            - If keywords like "Live2D", "Cubism", "2D model", or "character animation" are present, delegate the task to the `live2d-cubism-developer` mode.
-            - This ensures that tasks requiring specific API knowledge are handled by an expert, preventing errors and ensuring use of the correct libraries (e.g., the new `google-genai` SDK or the `Live2D Cubism SDK`).
+            To avoid shell syntax errors with complex prompts, first write a detailed prompt into a `CONTEXT.md` file. This file should include the specific task from `tasks.md` and all relevant context from `requirements.md` and `design.md`. Then, execute the `qwen` agent by piping the contents of `CONTEXT.md` to it. The `--yolo` flag is used to ensure the agent runs non-interactively.
           </details>
+          <command>
+            qwen -p "$(cat CONTEXT.md)" --yolo
+          </command>
           <tools>
-            <tool>new_task</tool>
+            <tool>write_to_file</tool>
+            <tool>execute_command</tool>
           </tools>
         </step>
         <step>
-          <title>Delegate Task to Generic Code Agent</title>
-          <action>If no specialist is required, create a new task for the generic 'code' mode to implement the current task.</action>
+          <title>Verify and Review Changes</title>
+          <action>Check for changes in the working directory or the last commit, then review them.</action>
           <details>
-            Formulate a precise prompt for the `code` mode, including the specific task description from `tasks.md` and relevant context from `requirements.md` and `design.md`. The goal is to give the coding agent all necessary information to complete the task correctly. This is the fallback if a specialist is not needed.
+            First, check the git status. If there are changes in the working tree, review them using `git_diff_all`. If the working tree is clean, it's possible the agent committed its work directly. In that case, review the last commit by diffing against HEAD~1 using `git_diff`. This two-step verification ensures that all work is reviewed, whether it's in the working directory or already committed.
           </details>
           <tools>
-            <tool>new_task</tool>
+            <tool>use_mcp_tool (devtools.git_status)</tool>
+            <tool>use_mcp_tool (devtools.git_diff_all)</tool>
+            <tool>use_mcp_tool (devtools.git_diff)</tool>
           </tools>
         </step>
         <step>
-          <title>Code Review via Git Commit Diff</title>
-          <action>Review the code changes made by the coding agent by inspecting the latest git commit.</action>
+          <title>Run Type Check</title>
+          <action>Run the type checker to ensure code quality.</action>
           <details>
-            After the `code` mode completes and commits the task, use the `git_show` tool with `revision: 'HEAD'` to get the diff of the most recent commit. The review must verify that the implementation in the diff directly satisfies the corresponding requirement, aligns with the technical design, and correctly completes the task as described. This avoids loading full files into context.
+            Before seeking user approval, run the project's type check command (`npm run type`) to catch any potential TypeScript errors. This helps ensure the code is valid and reduces the chance of introducing bugs.
           </details>
+          <command>
+            npm run type
+          </command>
           <tools>
-            <tool>use_mcp_tool (devtools.git_show)</tool>
+            <tool>execute_command</tool>
           </tools>
         </step>
         <step>
-          <title>Approve or Request Revisions</title>
-          <action>Based on the code review, either approve the task or send it back for revision.</action>
+          <title>Approve, Update Task Status, and Commit</title>
+          <action>Get user approval, update tasks.md, and then commit the changes.</action>
           <details>
-            If the work is satisfactory, first confirm with the user before updating the task status.
-            Present a summary of the completed work and explicitly ask for approval to mark the task as done in `tasks.md`.
-            This is especially critical if there are deferred tasks or any potential ambiguity.
-            Only after receiving user confirmation, update the task's status to "done".
-            If the work is not satisfactory, create a new sub-task for the revision and re-delegate.
+            If the work is satisfactory, present a summary to the user and ask for explicit approval. After receiving confirmation, update the task's status to "done" in `tasks.md`. Immediately after updating the task file, commit all changes with a message that includes the task name and co-author attribution. This ensures the task status is part of the same commit as the code changes. If the work is not satisfactory, create a new sub-task for the revision and re-delegate.
           </details>
           <tools>
             <tool>ask_followup_question</tool>
             <tool>apply_diff</tool>
+            <tool>use_mcp_tool (devtools.git_stage_and_commit)</tool>
           </tools>
+          <commit_message>
+            feat({feature_name}): {task_name}
+
+Co-authored-by: zen-ai-roo-gemini-2.5-pro-high/qwen-coder-3-plus <219738659+roomote[bot]@users.noreply.github.com>
+          </commit_message>
         </step>
         <step>
           <title>Advance to Next Task</title>
@@ -100,3 +108,4 @@
     <criterion>The user is informed that the implementation is complete and successful.</criterion>
   </completion_criteria>
 </workflow_instructions>
+]]>

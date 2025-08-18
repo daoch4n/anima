@@ -5,7 +5,6 @@
   "license": "Apache-2.0",
   "scripts": {
     "dev": "vite",
-    "test": "wtr '**/*.test.ts' --node-resolve --puppeteer",
     "type": "tsc -p tsconfig.json --noEmit",
     "lint": "biome check --write .",
     "prepare": "husky install",

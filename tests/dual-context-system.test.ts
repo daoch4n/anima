@@ -148,20 +148,30 @@ describe("Dual-Context System", () => {
 
   describe("State Management", () => {
     it("should initialize with texting mode as default", async () => {
-      expect(element.activeMode).to.equal("texting");
+      expect(element.activeMode).to.equal("text");
       expect(element.textTranscript).to.be.an("array").that.is.empty;
       expect(element.callTranscript).to.be.an("array").that.is.empty;
     });
 
     it("should maintain separate transcript arrays for text and call modes", async () => {
       // Add message to text transcript
-      const textMessage = { text: "Hello text", speaker: "user" as const };
+      const textMessage = {
+        text: "Hello text",
+        sender: "user" as const,
+        id: "1",
+        timestamp: new Date(),
+      };
       element.textTranscript = [textMessage];
       await element.updateComplete;
 
       // Switch to calling mode and add call transcript
-      element.activeMode = "calling";
-      const callMessage = { text: "Hello call", speaker: "user" as const };
+      element.activeMode = "call";
+      const callMessage = {
+        text: "Hello call",
+        sender: "user" as const,
+        id: "2",
+        timestamp: new Date(),
+      };
       element.callTranscript = [callMessage];
       await element.updateComplete;
 
@@ -173,29 +183,43 @@ describe("Dual-Context System", () => {
     });
 
     it("should switch active mode correctly", async () => {
-      expect(element.activeMode).to.equal("texting");
+      expect(element.activeMode).to.equal("text");
 
-      element.activeMode = "calling";
+      element.activeMode = "call";
       await element.updateComplete;
-      expect(element.activeMode).to.equal("calling");
+      expect(element.activeMode).to.equal("call");
 
-      element.activeMode = "texting";
+      element.activeMode = "text";
       await element.updateComplete;
-      expect(element.activeMode).to.equal("texting");
+      expect(element.activeMode).to.equal("text");
     });
 
     it("should preserve context when switching between modes", async () => {
       // Add content to text mode
-      element.textTranscript = [{ text: "Text message 1", speaker: "user" }];
+      element.textTranscript = [
+        {
+          text: "Text message 1",
+          sender: "user",
+          id: "1",
+          timestamp: new Date(),
+        },
+      ];
       await element.updateComplete;
 
       // Switch to calling mode
-      element.activeMode = "calling";
-      element.callTranscript = [{ text: "Call message 1", speaker: "user" }];
+      element.activeMode = "call";
+      element.callTranscript = [
+        {
+          text: "Call message 1",
+          sender: "user",
+          id: "2",
+          timestamp: new Date(),
+        },
+      ];
       await element.updateComplete;
 
       // Switch back to texting mode
-      element.activeMode = "texting";
+      element.activeMode = "text";
       await element.updateComplete;
 
       // Verify text context is preserved
@@ -219,7 +243,7 @@ describe("Dual-Context System", () => {
       const textSession = element.textSession;
 
       // Simulate call start to initialize call session
-      element.activeMode = "calling";
+      element.activeMode = "call";
       await element.updateComplete;
       await new Promise((resolve) => setTimeout(resolve, 100));
 
@@ -235,14 +259,14 @@ describe("Dual-Context System", () => {
       const initialOutputNode = element.outputNode;
 
       // Switch to calling mode
-      element.activeMode = "calling";
+      element.activeMode = "call";
       await element.updateComplete;
 
       // OutputNode should change for calling mode
       expect(element.outputNode).to.not.equal(initialOutputNode);
 
       // Switch back to texting mode
-      element.activeMode = "texting";
+      element.activeMode = "text";
       await element.updateComplete;
 
       // OutputNode should revert to text mode
@@ -259,8 +283,22 @@ describe("Dual-Context System", () => {
 
     it("should reset only text context when _resetTextContext is called", () => {
       // Add content to both transcripts
-      element.textTranscript = [{ text: "Text message", speaker: "user" }];
-      element.callTranscript = [{ text: "Call message", speaker: "user" }];
+      element.textTranscript = [
+        {
+          text: "Text message",
+          sender: "user",
+          id: "1",
+          timestamp: new Date(),
+        },
+      ];
+      element.callTranscript = [
+        {
+          text: "Call message",
+          sender: "user",
+          id: "2",
+          timestamp: new Date(),
+        },
+      ];
 
       // Call the text reset method directly
       (element as any)._resetTextContext();
@@ -272,8 +310,22 @@ describe("Dual-Context System", () => {
 
     it("should reset only call context when _resetCallContext is called", () => {
       // Add content to both transcripts
-      element.textTranscript = [{ text: "Text message", speaker: "user" }];
-      element.callTranscript = [{ text: "Call message", speaker: "user" }];
+      element.textTranscript = [
+        {
+          text: "Text message",
+          sender: "user",
+          id: "1",
+          timestamp: new Date(),
+        },
+      ];
+      element.callTranscript = [
+        {
+          text: "Call message",
+          sender: "user",
+          id: "2",
+          timestamp: new Date(),
+        },
+      ];
 
       // Call the call reset method directly
       (element as any)._resetCallContext();

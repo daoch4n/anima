@@ -3,6 +3,13 @@ export interface Turn {
   text: string;
 }
 
+export interface Message {
+  id: string;
+  sender: "user" | "model";
+  text: string;
+  timestamp: Date;
+}
+
 export interface CallHistoryItem {
   id: string;
   timestamp: string;
@@ -11,7 +18,7 @@ export interface CallHistoryItem {
 
 export interface CallSummary {
   id: string;
-  timestamp: number;
-  summary: string;
-  transcript: Turn[];
+  summaryText: string;
+  timestamp: Date;
+  originalTranscript: Message[];
 }

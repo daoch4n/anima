@@ -117,8 +117,8 @@ export class CallHistoryView extends LitElement {
               ${this.callHistory.map(
                 (call) => html`
                   <li class="history-item" @click=${() => this._startTts(call)}>
-                    <div>${new Date(call.timestamp).toLocaleString()}</div>
-                    <div>${call.summary}</div>
+                    <div>${call.timestamp.toLocaleString()}</div>
+                    <div>${call.summaryText}</div>
                   </li>
                 `,
               )}

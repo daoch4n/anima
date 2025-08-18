@@ -1,5 +1,5 @@
 import type { GoogleGenAI } from "@google/genai";
-import type { Turn } from "@shared/types";
+import type { Message } from "@shared/types";
 
 const MODEL_NAME = "gemini-2.5-flash-lite";
 
@@ -10,7 +10,7 @@ export class SummarizationService {
     this.genAI = client;
   }
 
-  async summarize(transcript: Turn[]): Promise<string> {
+  async summarize(transcript: Message[]): Promise<string> {
     if (!transcript || transcript.length === 0) {
       return "";
     }
@@ -24,14 +24,19 @@ export class SummarizationService {
       return result.text;
     } catch (error) {
       console.error("Error summarizing transcript:", error);
-      return "";
+      return "Summary unavailable";
     }
   }
 
-  private createPrompt(transcript: Turn[]): string {
+  private createPrompt(transcript: Message[]): string {
     const conversation = transcript
-      .map((turn) => `${turn.speaker}: ${turn.text}`)
+      .map((message) => `${message.sender}: ${message.text}`)
       .join("\n");
-    return `Summarize the following conversation:\n\n${conversation}`;
+    return `Please provide a concise summary of the following conversation. 
+The summary should capture the main topics discussed and any conclusions reached.
+Format the summary as a single paragraph.
+
+Conversation:
+${conversation}`;
   }
 }
