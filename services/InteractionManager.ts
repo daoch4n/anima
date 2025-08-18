@@ -218,7 +218,7 @@ export class InteractionManager {
     this.logger.info("Clearing text session");
 
     if (this.textSessionManager) {
-      this.textSessionManager.clearMessages();
+      this.textSessionManager.endSession();
       // Dispatch event for UI to clear chat
       document.dispatchEvent(new CustomEvent("chat-cleared"));
     }
