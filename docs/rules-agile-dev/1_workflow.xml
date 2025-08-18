@@ -39,26 +39,16 @@
           </tools>
         </step>
         <step>
-          <title>Delegate Task to Specialist Agent (If Applicable)</title>
-          <action>If the task requires a specialist, delegate to the appropriate mode.</action>
+          <title>Execute Task with Agentic Tool</title>
+          <action>Execute the current task using the `qwen` agentic tool.</action>
           <details>
-            Analyze the task description from `tasks.md` for keywords indicating a need for a specialist agent.
-            - If keywords like "Google GenAI", "Gemini", "summarization", or "generative AI" are present, delegate the task to the `google-genai-developer` mode.
-            - If keywords like "Live2D", "Cubism", "2D model", or "character animation" are present, delegate the task to the `live2d-cubism-developer` mode.
-            - This ensures that tasks requiring specific API knowledge are handled by an expert, preventing errors and ensuring use of the correct libraries (e.g., the new `google-genai` SDK or the `Live2D Cubism SDK`).
+            Formulate a precise prompt for the `qwen` tool, including the specific task description from `tasks.md` and relevant context from `requirements.md` and `design.md`. The `qwen` tool will then be executed with the prompt to implement the required code changes. The `--yolo` flag is used to ensure the agent runs non-interactively.
           </details>
+          <command>
+            qwen -p "Implement the task: [task from tasks.md]. Context: [context from requirements.md and design.md]" --yolo
+          </command>
           <tools>
-            <tool>new_task</tool>
-          </tools>
-        </step>
-        <step>
-          <title>Delegate Task to Generic Code Agent</title>
-          <action>If no specialist is required, create a new task for the generic 'code' mode to implement the current task.</action>
-          <details>
-            Formulate a precise prompt for the `code` mode, including the specific task description from `tasks.md` and relevant context from `requirements.md` and `design.md`. The goal is to give the coding agent all necessary information to complete the task correctly. This is the fallback if a specialist is not needed.
-          </details>
-          <tools>
-            <tool>new_task</tool>
+            <tool>execute_command</tool>
           </tools>
         </step>
         <step>
