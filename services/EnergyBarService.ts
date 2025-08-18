@@ -78,8 +78,7 @@ export class EnergyBarService extends EventTarget {
     return stsLevel === 3 || stsLevel === 2;
   }
 
-
-  /** Decrement level due to rate limit for a specific mode, logging and emitting change events. */
+  /** Decrement energy level by 1 due to a rate limit error for a specific mode, logging and emitting change events. */
   handleRateLimitError(mode: EnergyMode = "sts"): void {
     const prev = this._levels[mode];
     const next = Math.max(0, prev - 1) as EnergyLevel;
