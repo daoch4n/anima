@@ -119,18 +119,18 @@ Scenario: Consistent layout
   And the Live2D model area remains unobstructed.
 ```
 
-#### 2.1.5. User Story: Call Summarization and History
+#### 2.1.5. User Story: Call Summarization, History, and Interaction
 - **Priority**: Medium
 - **As a** user,
-- **I want** to see a summarized history of my past calls,
-- **so that** I can review them and start new conversations based on them.
+- **I want** my voice calls to be automatically summarized, stored in a history, and interactive,
+- **so that** I can easily review past conversations and reuse their content.
 
 ##### Acceptance Criteria
 ```gherkin
-Scenario: Generating a call summary
-  Given a call has ended
+Scenario: Successful summary generation
+  Given a call has ended and the transcript is available
   When I hang up
-  Then a background API call is made to a 'gemini-flash-lite' model to summarize the call transcript.
+  Then the system generates a concise summary of the conversation using the `gemini-2.5-flash-lite` model.
 
 Scenario: Viewing call history
   Given the "Call History" tab is selected
@@ -140,6 +140,11 @@ Scenario: Starting a new chat from a summary
   Given I am viewing the "Call History" tab
   When I click on a call summary
   Then the summary content is used to start a new TTS session in the "Chat" tab.
+
+Scenario: Replaying a summary via TTS
+  Given I am viewing the "Call History" tab
+  When I click the "Play" button on a summary
+  Then the summary text is read aloud using a TTS service.
 ```
 
 ### 2.2. Epic: Dynamic Resource Management
