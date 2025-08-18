@@ -141,7 +141,7 @@ abstract class BaseSessionManager {
               );
               if (
                 toast &&
-                root?.activeMode === "calling" &&
+                root?.activeMode === "call" &&
                 !root?._callReconnectingNotified
               ) {
                 root._callReconnectingNotified = true;
@@ -151,7 +151,7 @@ abstract class BaseSessionManager {
                 });
               } else if (
                 toast &&
-                root?.activeMode === "texting" &&
+                root?.activeMode === "text" &&
                 !root?._textReconnectingNotified
               ) {
                 root._textReconnectingNotified = true;
@@ -333,13 +333,13 @@ abstract class BaseSessionManager {
           const toast = root?.shadowRoot?.querySelector(
             "toast-notification#inline-toast",
           );
-          if (toast && root?.activeMode === "calling") {
+          if (toast && root?.activeMode === "call") {
             toast.show("Call reconnected", "success", 1200, {
               position: "bottom-right",
               variant: "standard",
             });
             root._callReconnectingNotified = false;
-          } else if (toast && root?.activeMode === "texting") {
+          } else if (toast && root?.activeMode === "text") {
             toast.show("Chat reconnected", "success", 1200, {
               position: "bottom-center",
               variant: "inline",
@@ -580,7 +580,7 @@ class CallSessionManager extends BaseSessionManager {
   }
 }
 
-type ActiveMode = "texting" | "calling" | null;
+type ActiveMode = "text" | "call";
 
 const logger = createComponentLogger("GdmLiveAudio");
 
@@ -604,7 +604,7 @@ export class GdmLiveAudio extends LitElement {
   private currentApiKey: string = "";
 
   // Dual-context state management
-  @state() activeMode: ActiveMode = null;
+  @state() activeMode: ActiveMode = "text";
   @state() textTranscript: Message[] = [];
   @state() callTranscript: Message[] = [];
   @state() textSession: Session | null = null;
@@ -801,8 +801,8 @@ export class GdmLiveAudio extends LitElement {
   private async initClient() {
     this.initAudio();
 
-    // Always initialize with texting mode by default (main UI)
-    this.activeMode = "texting";
+    // Always initialize with text mode by default (main UI)
+    this.activeMode = "text";
 
     // Connect both session output nodes to the main audio destination
     this.textOutputNode.connect(this.outputAudioContext.destination);
@@ -836,9 +836,9 @@ export class GdmLiveAudio extends LitElement {
 
   private _updateActiveOutputNode() {
     // Update the main outputNode to point to the active session's output node
-    if (this.activeMode === "texting") {
+    if (this.activeMode === "text") {
       this.outputNode = this.textOutputNode;
-    } else if (this.activeMode === "calling") {
+    } else if (this.activeMode === "call") {
       this.outputNode = this.callOutputNode;
     }
     // Trigger a re-render to pass the updated outputNode to live2d-gate
@@ -1003,7 +1003,7 @@ export class GdmLiveAudio extends LitElement {
 
     logger.debug("Call start. Existing callSession:", this.callSession);
     // Switch to calling mode
-    this.activeMode = "calling";
+    this.activeMode = "call";
     this.callState = "connecting";
     this._updateActiveOutputNode();
 
@@ -1098,7 +1098,7 @@ export class GdmLiveAudio extends LitElement {
         const inputBuffer = audioProcessingEvent.inputBuffer;
         const pcmData = inputBuffer.getChannelData(0);
         // Send audio to the active call session using session manager
-        if (this.activeMode === "calling" && this.callSession) {
+        if (this.activeMode === "call" && this.callSession) {
           try {
             this.callSessionManager.sendRealtimeInput({
               media: createBlob(pcmData),
@@ -1153,8 +1153,8 @@ export class GdmLiveAudio extends LitElement {
       this.mediaStream = null;
     }
 
-    // Switch back to texting mode
-    this.activeMode = "texting";
+    // Switch back to text mode
+    this.activeMode = "text";
     this._updateActiveOutputNode();
 
     // Summarize the call
@@ -1619,7 +1619,7 @@ export class GdmLiveAudio extends LitElement {
 
     // If we are in an active call and rate-limited, reconnect with the downgraded model
     if (
-      this.activeMode === "calling" &&
+      this.activeMode === "call" &&
       this.isCallActive &&
       reason === "rate-limit-exceeded" &&
       mode === "sts"
@@ -1643,10 +1643,10 @@ export class GdmLiveAudio extends LitElement {
       </div>
       <div class="ui-grid">
 
-        <div class="main-container ${this.activeMode === "calling" ? "hidden" : ""}">
+        <div class="main-container ${this.activeMode === "call" ? "hidden" : ""}">
           <tab-view
             .activeTab=${this.activeTab}
-            .visible=${this.activeMode !== "calling"}
+            .visible=${this.activeMode !== "call"}
             @tab-switch=${this._handleTabSwitch}
           ></tab-view>
           ${
@@ -1654,7 +1654,7 @@ export class GdmLiveAudio extends LitElement {
               ? html`
                   <chat-view
                     .transcript=${this.textTranscript}
-                    .visible=${this.activeMode !== "calling"}
+                    .visible=${this.activeMode !== "call"}
                     @send-message=${this._handleSendMessage}
                     @reset-text=${this._resetTextContext}
                     @scroll-state-changed=${this._handleChatScrollStateChanged}
@@ -1709,7 +1709,7 @@ export class GdmLiveAudio extends LitElement {
 
         <call-transcript
           .transcript=${this.callTranscript}
-          .visible=${this.activeMode === "calling"}
+          .visible=${this.activeMode === "call"}
           .activePersonaName=${this.personaManager.getActivePersona().name}
           .callState=${this.callState}
           @reset-call=${this._resetCallContext}
