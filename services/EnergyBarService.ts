@@ -10,8 +10,13 @@ export interface EnergyState {
   modelTier: string | null;
 }
 
+export type EnergyResetReason =
+  | "rate-limit-exceeded"
+  | "session-reset"
+  | "manual";
+
 export interface EnergyLevelChangedDetail extends EnergyState {
-  reason: "rate-limit-exceeded" | "session-reset" | "manual";
+  reason: EnergyResetReason;
   prevLevel: EnergyLevel;
   mode: EnergyMode;
 }

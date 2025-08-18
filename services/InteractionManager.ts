@@ -4,7 +4,11 @@ import type { GoogleGenAI } from "@google/genai";
 import type { Message } from "@shared/types";
 import { CallSessionManager } from "./CallSessionManager";
 import { createComponentLogger } from "./DebugLogger";
-import { type EnergyMode, energyBarService } from "./EnergyBarService";
+import {
+  type EnergyMode,
+  EnergyBarService,
+  type EnergyResetReason,
+} from "./EnergyBarService";
 import { TextSessionManager } from "./TextSessionManager";
 
 /**
@@ -19,20 +23,19 @@ import { TextSessionManager } from "./TextSessionManager";
  */
 export class InteractionManager {
   private logger = createComponentLogger("InteractionManager");
-  private textSessionManager: TextSessionManager | null = null;
-  private callSessionManager: CallSessionManager | null = null;
-  private summarizationService: SummarizationService | null = null;
-  private personaManager: PersonaManager;
   private client: GoogleGenAI;
+  private personaManager: PersonaManager;
 
-  constructor(client: GoogleGenAI) {
+  constructor(
+    private textSessionManager: TextSessionManager,
+    private callSessionManager: CallSessionManager,
+    private summarizationService: SummarizationService,
+    private energyBarService: EnergyBarService,
+    client: GoogleGenAI,
+    personaManager: PersonaManager,
+  ) {
     this.client = client;
-    this.personaManager = new PersonaManager();
-
-    // Initialize summarization service if client is available
-    if (this.client) {
-      this.summarizationService = new SummarizationService(this.client);
-    }
+    this.personaManager = personaManager;
 
     // Listen for energy level changes
     energyBarService.addEventListener("energy-level-changed", (e) => {
@@ -43,14 +46,34 @@ export class InteractionManager {
       if (detail.reason === "rate-limit-exceeded") {
         this.onRateLimitError(detail.mode);
       }
+
+      // Display persona-driven prompts for energy changes
+      const persona = this.personaManager.getActivePersona();
+      const prompt = this.personaManager.getPromptForEnergyLevel(
+        detail.level,
+        persona.name,
+        detail.mode,
+      );
+
+      if (prompt) {
+        // Dispatch event for UI to display the prompt
+        document.dispatchEvent(
+          new CustomEvent("display-prompt", {
+            detail: { prompt },
+          }),
+        );
+      }
     });
   }
 
   /**
    * Handle UI events
-   * @param event CustomEvent containing event details
+   * @param event An object containing the event type and details
    */
-  handleEvent(event: CustomEvent): void {
+  handleEvent(event: {
+    type: string;
+    detail?: Record<string, unknown>;
+  }): void {
     const { type, detail } = event;
 
     this.logger.debug("Handling event", { type, detail });
@@ -70,7 +93,7 @@ export class InteractionManager {
 
       case "send-message":
         if (detail?.message) {
-          this.sendTextMessage(detail.message).catch((error) => {
+          this.sendTextMessage(detail.message as string).catch((error) => {
             this.logger.error("Failed to send text message", error);
             // Dispatch error event for UI to handle
             document.dispatchEvent(
@@ -127,11 +150,7 @@ export class InteractionManager {
     }
 
     // Create new call session manager
-    this.callSessionManager = new CallSessionManager(
-      this.client,
-      this.updateCallTranscript.bind(this),
-      this.personaManager,
-    );
+    // TODO: Refactor to avoid direct instantiation here
 
     try {
       // Send audio will automatically start the session
@@ -182,13 +201,7 @@ export class InteractionManager {
     this.logger.debug("Sending text message", { message });
 
     // Lazy initialize text session manager if needed
-    if (!this.textSessionManager) {
-      this.textSessionManager = new TextSessionManager(
-        this.client,
-        this.updateTextTranscript.bind(this),
-        this.personaManager,
-      );
-    }
+    // TODO: Refactor to avoid direct instantiation here
 
     try {
       await this.textSessionManager.sendMessage(message);
@@ -209,6 +222,9 @@ export class InteractionManager {
       // Dispatch event for UI to clear chat
       document.dispatchEvent(new CustomEvent("chat-cleared"));
     }
+
+    // Also reset TTS energy
+    this.energyBarService.resetEnergyLevel("manual", "tts");
   }
 
   /**

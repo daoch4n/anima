@@ -33,6 +33,7 @@ export interface SessionConfig {
   context?: string;
   enableResumption?: boolean;
   maxReconnectAttempts?: number;
+  resumptionToken?: string;
 }
 
 /**

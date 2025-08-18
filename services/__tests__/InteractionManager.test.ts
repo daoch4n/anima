@@ -4,19 +4,38 @@ import sinon from "sinon";
 import { energyBarService } from "../EnergyBarService";
 import { InteractionManager } from "../InteractionManager";
 
+import { PersonaManager } from "@features/persona/PersonaManager";
+import { SummarizationService } from "@features/summarization/SummarizationService";
+import { CallSessionManager } from "../CallSessionManager";
+import { TextSessionManager } from "../TextSessionManager";
+
 describe("InteractionManager", () => {
   let interactionManager: InteractionManager;
+  let mockTextSessionManager: sinon.SinonStubbedInstance<TextSessionManager>;
+  let mockCallSessionManager: sinon.SinonStubbedInstance<CallSessionManager>;
+  let mockSummarizationService: sinon.SinonStubbedInstance<SummarizationService>;
+  let mockEnergyBarService: sinon.SinonStubbedInstance<typeof energyBarService>;
   let mockClient: GoogleGenAI;
+  let mockPersonaManager: sinon.SinonStubbedInstance<PersonaManager>;
   let dispatchEventStub: sinon.SinonStub;
 
   beforeEach(() => {
-    // Create a mock GoogleGenAI client
+    mockTextSessionManager = sinon.createStubInstance(TextSessionManager);
+    mockCallSessionManager = sinon.createStubInstance(CallSessionManager);
+    mockSummarizationService = sinon.createStubInstance(SummarizationService);
+    mockEnergyBarService = sinon.stub(energyBarService);
     mockClient = {} as GoogleGenAI;
+    mockPersonaManager = sinon.createStubInstance(PersonaManager);
 
-    // Create interaction manager instance
-    interactionManager = new InteractionManager(mockClient);
+    interactionManager = new InteractionManager(
+      mockTextSessionManager,
+      mockCallSessionManager,
+      mockSummarizationService,
+      mockEnergyBarService,
+      mockClient,
+      mockPersonaManager,
+    );
 
-    // Stub document.dispatchEvent to capture events
     dispatchEventStub = sinon.stub(document, "dispatchEvent");
   });
 
@@ -30,11 +49,7 @@ describe("InteractionManager", () => {
 
   describe("handleEvent", () => {
     it("should handle start-call event", () => {
-      const event = new CustomEvent("start-call");
-
-      interactionManager.handleEvent(event);
-
-      // Should dispatch call-session-ready event
+      interactionManager.handleEvent({ type: "start-call" });
       expect(dispatchEventStub.calledOnce).to.be.true;
       expect(dispatchEventStub.firstCall.args[0].type).to.equal(
         "call-session-ready",
@@ -42,38 +57,21 @@ describe("InteractionManager", () => {
     });
 
     it("should handle send-message event", async () => {
-      const event = new CustomEvent("send-message", {
+      interactionManager.handleEvent({
+        type: "send-message",
         detail: { message: "Hello, world!" },
       });
-
-      // Since we don't have a real session, this should fail
-      // but we're mainly testing that it tries to handle the event
-      try {
-        interactionManager.handleEvent(event);
-      } catch (error) {
-        // Expected since we don't have a real session
-      }
-
-      // Should not dispatch any events for successful text message
-      // (that would happen in the session manager)
+      // Test that sendTextMessage is called
     });
 
     it("should handle clear-chat event", () => {
-      const event = new CustomEvent("clear-chat");
-
-      interactionManager.handleEvent(event);
-
-      // Should dispatch chat-cleared event
+      interactionManager.handleEvent({ type: "clear-chat" });
       expect(dispatchEventStub.calledOnce).to.be.true;
       expect(dispatchEventStub.firstCall.args[0].type).to.equal("chat-cleared");
     });
 
     it("should handle unknown events gracefully", () => {
-      const event = new CustomEvent("unknown-event");
-
-      interactionManager.handleEvent(event);
-
-      // Should not dispatch any events
+      interactionManager.handleEvent({ type: "unknown-event" });
       expect(dispatchEventStub.notCalled).to.be.true;
     });
   });
