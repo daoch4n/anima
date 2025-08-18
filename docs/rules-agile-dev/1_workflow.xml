@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<![CDATA[<?xml version="1.0" encoding="UTF-8"?>
 <workflow_instructions>
   <mode_overview>
     This mode governs the software development process, ensuring that every implementation step strictly adheres to the approved specifications. It orchestrates the execution of tasks, reviews the code produced, and maintains alignment with `requirements.md`, `design.md`, and `tasks.md`.
@@ -53,23 +53,15 @@
           </tools>
         </step>
         <step>
-          <title>Verify File Changes</title>
-          <action>Check the Git working tree for any modifications made by the agent.</action>
+          <title>Verify and Review Changes</title>
+          <action>Check for changes in the working directory or the last commit, then review them.</action>
           <details>
-            To handle cases where the agent's process might terminate unexpectedly after completing its work, always check the git status to see if any files were modified. This ensures that successful work is not lost due to terminal or process glitches.
+            First, check the git status. If there are changes in the working tree, review them using `git_diff_all`. If the working tree is clean, it's possible the agent committed its work directly. In that case, review the last commit by diffing against HEAD~1 using `git_diff`. This two-step verification ensures that all work is reviewed, whether it's in the working directory or already committed.
           </details>
           <tools>
             <tool>use_mcp_tool (devtools.git_status)</tool>
-          </tools>
-        </step>
-        <step>
-          <title>Code Review via Git Diff</title>
-          <action>Review the code changes made by the coding agent by inspecting the working tree diff.</action>
-          <details>
-            After the agent has run, use the `git_diff_all` tool to get a diff of all changes in the working directory (staged and unstaged). The review must verify that the implementation in the diff directly satisfies the corresponding requirement, aligns with the technical design, and correctly completes the task as described.
-          </details>
-          <tools>
             <tool>use_mcp_tool (devtools.git_diff_all)</tool>
+            <tool>use_mcp_tool (devtools.git_diff)</tool>
           </tools>
         </step>
         <step>
@@ -86,27 +78,14 @@
           </tools>
         </step>
         <step>
-          <title>Approve or Request Revisions</title>
-          <action>Based on the code review, either approve the task or send it back for revision.</action>
+          <title>Approve, Update Task Status, and Commit</title>
+          <action>Get user approval, update tasks.md, and then commit the changes.</action>
           <details>
-            If the work is satisfactory, first confirm with the user before updating the task status.
-            Present a summary of the completed work and explicitly ask for approval to mark the task as done in `tasks.md`.
-            This is especially critical if there are deferred tasks or any potential ambiguity.
-            Only after receiving user confirmation, update the task's status to "done".
-            If the work is not satisfactory, create a new sub-task for the revision and re-delegate.
+            If the work is satisfactory, present a summary to the user and ask for explicit approval. After receiving confirmation, update the task's status to "done" in `tasks.md`. Immediately after updating the task file, commit all changes with a message that includes the task name and co-author attribution. This ensures the task status is part of the same commit as the code changes. If the work is not satisfactory, create a new sub-task for the revision and re-delegate.
           </details>
           <tools>
             <tool>ask_followup_question</tool>
             <tool>apply_diff</tool>
-          </tools>
-        </step>
-        <step>
-          <title>Commit Changes</title>
-          <action>Commit the changes to the repository with the correct attribution.</action>
-          <details>
-            After the user confirms the task is complete, commit the changes with a message that includes the task name and the co-author attribution.
-          </details>
-          <tools>
             <tool>use_mcp_tool (devtools.git_stage_and_commit)</tool>
           </tools>
           <commit_message>
@@ -129,3 +108,4 @@ Co-authored-by: zen-ai-roo-gemini-2.5-pro-high/qwen-coder-3-plus <219738659+room
     <criterion>The user is informed that the implementation is complete and successful.</criterion>
   </completion_criteria>
 </workflow_instructions>
+]]>
